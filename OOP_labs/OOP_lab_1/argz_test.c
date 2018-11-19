@@ -15,7 +15,12 @@ void main() {
 	argz_print(argz, argz_len);
 	STOP;
 
-	printf("\n\nTest 2) 'argz_count':\n");
+	printf("\n\nTest 2) 'argz_replace':\n");
+	argz_replace(&argz, &argz_len, "PWD=/bin/monty", "PWD=~/billy");
+	argz_print(argz, argz_len);
+	STOP;
+
+	printf("\n\nTest 3) 'argz_count':\n");
 	count = argz_count(argz, argz_len);
 	printf("count = %d\n", count);
 	STOP;

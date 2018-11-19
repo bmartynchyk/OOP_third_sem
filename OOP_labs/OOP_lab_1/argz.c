@@ -60,9 +60,54 @@ char* argz_next(char *argz, size_t argz_len, const char *entry) {
 	return NULL;
 }
 
-error_t argz_replace(char **argz, size_t *argz_len, const char *str, const char *with)
-{
-	return OK;
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_replace
+Usage:        argz_replace(argz, arg_len, entry);
+Prototype in: argz.h
+Synopsis:     replaces element 'entry' of vector argz' by new element 'with'. Modifies 'argz_len'.
+Return value: returns 'ERROR' in case if substring 'str' is not exist or func gets NULL-pointer. 
+Returns 'OK' if substring 'str' replaced by 'with'.
+*--------------------------------------------------------------------------------------------------*/
+error_t argz_replace(char **argz, size_t *argz_len, const char *str, const char *with) {
+	if (NULL == argz || NULL == argz_len || NULL == str || NULL == with)
+		return ERROR;
+
+	uint16 spot = 0, str_len = strlen(str),
+		with_len = strlen(with);
+
+	char *new_argz = (char*)malloc((*argz_len - str_len + with_len) * sizeof(char));
+
+	for (int i = 0; i < *argz_len - str_len; i++) {
+		for (int j = 0; j < str_len; j++, i++) {
+			if (str[j] == (*argz)[i]) {
+				spot = 1;
+			}
+			else {
+				spot = 0; break;
+			}
+		}
+
+		if (spot) {
+			i -= str_len;
+
+			for (int j = 0; j < i; j++) // Copy all character before str
+				new_argz[j] = (*argz)[j];
+
+			for (int j = i; j < i + with_len; j++) // Replace str by with
+				new_argz[j] = with[j - i];
+
+			*argz_len = *argz_len - str_len + with_len;
+
+			for (int j = i + with_len; j < *argz_len; j++) // Copy all another character
+				new_argz[j] = (*argz)[j + str_len - with_len];
+
+			*argz = new_argz;
+
+			return OK;
+		}
+	}
+
+	return ERROR;
 }
 
 /*-------------------------------------------------------------------------------------------------*

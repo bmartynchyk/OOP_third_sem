@@ -6,6 +6,8 @@
 * Last modified: 19/11/2018
 ***************************************************************************************************/
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <conio.h>
 #include "argz.h"

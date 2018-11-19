@@ -10,6 +10,8 @@
 #ifndef _STRMANIP_H_
 #define _STRMANIP_H_
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stddef.h> 
 
 typedef unsigned short uint16; // 0..65535 - %hu

@@ -53,6 +53,16 @@ error_t argz_replace(char **argz, size_t *argz_len, const char *str, const char 
 	return OK;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_print
+Usage:        argz_print(argz, arg_len);
+Prototype in: argz.h
+Synopsis:     outputs 'argz' string and length of string.
+Return value: none
+*--------------------------------------------------------------------------------------------------*/
 void argz_print(const char *argz, size_t argz_len) {
+	printf("argz_len: %d\n", argz_len);
 
+	for (int i = 0; i < argz_len; i++)
+		printf("%c", argz[i]);
 }

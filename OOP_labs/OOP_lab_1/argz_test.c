@@ -12,5 +12,6 @@ void main() {
 
 	printf("Test 1) 'argz_create_sep':\n");
 	argz_create_sep(string, 58, &argz, &argz_len);
+	argz_print(argz, argz_len);
 	STOP;
 }

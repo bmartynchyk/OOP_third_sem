@@ -1,3 +1,11 @@
+/***************************************************************************************************
+* File:          argz_test.c
+* Synopsis:      project compiled by using C(/TC), VS 2015
+* Author:        Bohdan Martynchyk KV-74
+* Written:       06/10/2018
+* Last modified: 19/11/2018
+***************************************************************************************************/
+
 #include <stdio.h>
 #include <conio.h>
 #include "argz.h"

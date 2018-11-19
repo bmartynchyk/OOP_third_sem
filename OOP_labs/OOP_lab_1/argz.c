@@ -1,6 +1,13 @@
 /***************************************************************************************************
-* File: argz.c
-* Synopsis: Definition of 'argz.h' function
+* File:          argz.c
+* Synopsis:      definition of 'argz.h' function. The argz functions use malloc/realloc to
+* allocate/grow vector-substrings, and so any vector-string creating using these functions may be
+* freed by using free. Conversely, any argz funcs that may grow a string expects that string to have
+* been allocated using malloc those argz funñs that only examine their arguments or modify them in
+* place will work on any sort of memory. All argz funcs that do memory allocation have a return type
+* of error_t, and return 0 for success, and ENOMEM if an allocation error occurs. Function wich use
+* realloc to reallocate memory expects that the growth of memory will not be big. All these functions
+* are declared in the include file 'argz.h'.
 * Related files: argz.h
 * Author: Bohdan Martynchyk KV-74
 * Written: 06/10/2018

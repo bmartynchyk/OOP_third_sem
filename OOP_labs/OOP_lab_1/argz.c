@@ -152,8 +152,28 @@ error_t argz_insert(char **argz, size_t *argz_len, char *before, const char *ent
 	return OK;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_next
+Usage:        argz_next(argz, arg_len, entry);
+Prototype in: argz.h
+Synopsis:     outputs next element of vector'argz' that follows after 'entry'. If 'entry' equals to 0
+it returns first element of 'argz'. If 'entry' was the last element of 'argz' returns 0. Uses address
+to compare elements of vector with 'entry'.
+Return value: position of next element(in vector-string).
+*--------------------------------------------------------------------------------------------------*/
 char* argz_next(char *argz, size_t argz_len, const char *entry) {
-	return NULL;
+	if (!entry) return argz;
+
+	char *temp = argz; // Gets address
+	uint16 i = 0, spot = 0,
+		entry_len = strlen(entry);
+
+	// Search the address of proper entry
+	while (temp != entry) temp += strlen(temp) + 1;
+
+	if (temp + strlen(temp) + 1 == argz + argz_len) return 0;
+
+	return temp + strlen(temp) + 1;
 }
 
 /*-------------------------------------------------------------------------------------------------*

@@ -39,4 +39,8 @@ void main() {
 	argz_insert(&argz, &argz_len, "PWD=~/billy", "SHELL=/bin/bash");
 	argz_print(argz, argz_len);
 	STOP;
+
+	printf("\n\nTest 7) 'argz_next':\n");
+	for (char *entry = 0; entry = argz_next(argz, argz_len, entry);) printf("%s\n", entry);
+	system("pause");
 }

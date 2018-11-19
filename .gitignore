@@ -1,5 +1,8 @@
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+
+# Local VS folders
+Debug/
 x64/
 
 # Visual C++ cache files
@@ -12,10 +15,6 @@ ipch/
 *.cachefile
 *.VC.db
 *.VC.VC.opendb
-
-# Local VS folders
-*/Debug
-*/x64
 
 # Ignore all '.txt', '.csv', '.idx' files in all directories
 *.txt

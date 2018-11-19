@@ -34,4 +34,9 @@ void main() {
 	argz_delete(&argz, &argz_len, "SHELL=/bin/bash");
 	argz_print(argz, argz_len);
 	STOP;
+
+	printf("\n\nTest 6) 'argz_insert':\n");
+	argz_insert(&argz, &argz_len, "PWD=~/billy", "SHELL=/bin/bash");
+	argz_print(argz, argz_len);
+	STOP;
 }

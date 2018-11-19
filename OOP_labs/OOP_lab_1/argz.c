@@ -104,7 +104,51 @@ void argz_delete(char **argz, size_t *argz_len, char *entry) {
 	}
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_insert
+Usage:        argz_insert(&argz, &arg_len, before, entry);
+Prototype in: argz.h
+Synopsis:     insert 'entry' before first elemnet which equals to 'before'. Changes size of string
+vector.
+Return value: returns ERROR value if func has got NULL on one of pointer, also returns ERROR if 
+substring 'before' missed in string. Returns OK if insertion completed successfully.
+*--------------------------------------------------------------------------------------------------*/
 error_t argz_insert(char **argz, size_t *argz_len, char *before, const char *entry) {
+	if (NULL == argz || NULL == argz_len || NULL == before || NULL == entry) 
+		return ERROR;
+
+	uint16 spot = 0, entry_len = 0,
+		before_len = strlen(before);
+
+	for (int i = 0; i < *argz_len - before_len; i++) {
+		for (int j = 0; j < before_len; j++, i++) {
+			if ((*argz)[i] == before[j]) {
+				spot = 1;
+			}
+			else {
+				spot = 0; break;
+			}
+		}
+
+		if (spot) {
+			i -= before_len; // Goto position of insertion
+			entry_len = strlen(entry) + 1;
+			*argz_len += entry_len;
+
+			*argz = (char**)realloc(*argz, (*argz_len) * sizeof(char));
+
+			for (int j = *argz_len; j > i; j--)
+				(*argz)[j] = (*argz)[j - entry_len];
+
+			for (int j = 0; j < entry_len; j++)
+				(*argz)[i + j] = entry[j];
+
+			break;
+		}
+	}
+
+	if (spot != 1) return ERROR;
+
 	return OK;
 }
 

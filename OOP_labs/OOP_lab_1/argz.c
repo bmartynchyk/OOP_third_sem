@@ -69,8 +69,39 @@ error_t argz_add(char **argz, size_t *argz_len, const char *str) {
 	return OK;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_delete
+Usage:        argz_delete(&argz, &arg_len, entry);
+Prototype in: argz.h
+Synopsis:     removes only first elemnet which equals to 'entry'. Changes size of string vector.
+Return value: returns no value.
+*--------------------------------------------------------------------------------------------------*/
 void argz_delete(char **argz, size_t *argz_len, char *entry) {
+	uint16 spot = 0, entry_len = strlen(entry);
 
+	for (int i = 0; i < *argz_len - entry_len; i++) {
+		for (int j = 0; j < entry_len; j++, i++) {
+			if ((*argz)[i] == entry[j]) {
+				spot = 1;
+			}
+			else {
+				spot = 0; break;
+			}
+		}
+
+		if (spot) {
+			if ((*argz)[i] == '\0' && i < *argz_len) {
+				i++;
+				entry_len++; //!!
+			}
+
+			for (i -= entry_len; i < *argz_len - entry_len; i++)
+				(*argz)[i] = (*argz)[i + entry_len];
+
+			(*argz)[i] = '\0';
+			*argz_len -= entry_len;
+		}
+	}
 }
 
 error_t argz_insert(char **argz, size_t *argz_len, char *before, const char *entry) {

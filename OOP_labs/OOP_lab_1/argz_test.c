@@ -27,6 +27,11 @@ void main() {
 
 	printf("\n\nTest 4) 'argz_count':\n");
 	count = argz_count(argz, argz_len);
-	printf("count = %d\n", count);
+	printf("count = %d", count);
+	STOP;
+
+	printf("\n\nTest 5) 'argz_delete':\n");
+	argz_delete(&argz, &argz_len, "SHELL=/bin/bash");
+	argz_print(argz, argz_len);
 	STOP;
 }

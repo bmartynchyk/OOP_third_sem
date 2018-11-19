@@ -14,4 +14,9 @@ void main() {
 	argz_create_sep(string, 58, &argz, &argz_len);
 	argz_print(argz, argz_len);
 	STOP;
+
+	printf("\n\nTest 2) 'argz_count':\n");
+	count = argz_count(argz, argz_len);
+	printf("count = %d\n", count);
+	STOP;
 }

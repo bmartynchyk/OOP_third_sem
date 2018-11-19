@@ -28,8 +28,20 @@ error_t argz_create_sep(const char *string, int sep, char **argz, size_t *argz_l
 		return OK;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_count
+Usage:        argz_count(argz, arg_len);
+Prototype in: argz.h
+Synopsis:     counts elements in vector-string, separated by '\0.
+Return value: returns number of elements in vector-string.
+*--------------------------------------------------------------------------------------------------*/
 size_t argz_count(const char *argz, size_t arg_len) {
-	return 0;
+	size_t count = 0;
+
+	for (int i = 0; i < arg_len; i++)
+		if (argz[i] == '\0') count++;
+
+	return count;
 }
 
 error_t argz_add(char **argz, size_t *argz_len, const char *str) {

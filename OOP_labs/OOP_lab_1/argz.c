@@ -44,7 +44,28 @@ size_t argz_count(const char *argz, size_t arg_len) {
 	return count;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_add
+Usage:        argz_add(&argz, &arg_len, entry);
+Prototype in: argz.h
+Synopsis:     adds 'entry' into last position of strin g vector. Changes size of string vector.
+Return value: returns ERROR if func has got as one of parameter NULL-pointer. Returns OK if adding 
+'str' completed successfully.
+*--------------------------------------------------------------------------------------------------*/
 error_t argz_add(char **argz, size_t *argz_len, const char *str) {
+	if (NULL == argz || NULL == argz_len || NULL == str) 
+		return ERROR;
+
+	uint16 str_len = strlen(str);
+
+	*argz = (char**)realloc(*argz, (*argz_len + str_len + 1) * sizeof(char)); // +1 - for '\0' character
+
+	for (int i = (*argz_len); i < ((*argz_len) + str_len); i++)
+		(*argz)[i] = str[i - *argz_len];
+
+	*argz_len += str_len + 1;
+	(*argz)[*argz_len - 1] = '\0';
+
 	return OK;
 }
 

@@ -20,7 +20,12 @@ void main() {
 	argz_print(argz, argz_len);
 	STOP;
 
-	printf("\n\nTest 3) 'argz_count':\n");
+	printf("\n\nTest 3) 'argz_add':\n");
+	argz_add(&argz, &argz_len, "SHELL=/cryptoKeys");
+	argz_print(argz, argz_len);
+	STOP;
+
+	printf("\n\nTest 4) 'argz_count':\n");
 	count = argz_count(argz, argz_len);
 	printf("count = %d\n", count);
 	STOP;

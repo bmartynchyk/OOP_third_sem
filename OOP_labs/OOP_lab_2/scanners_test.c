@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <conio.h>
+#include "scanner.h"
 
 #define STOP _getch()
 

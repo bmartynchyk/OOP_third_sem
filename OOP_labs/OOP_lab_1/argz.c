@@ -9,8 +9,23 @@
 
 #include "argz.h"
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         argz_create_sep
+Usage:        argz_create_sep(string, sep, &argz, &argz_len);
+Prototype in: argz.h
+Synopsis:     separate initial string by character with number 'sep'
+Return value: returns error_t value. Result 'OK'(equals 0) - everything is good, 'ERROR'(equals 1) -
+one of pointers uninitialized. Main result is in variable 'argz' and argz_len.
+*--------------------------------------------------------------------------------------------------*/
 error_t argz_create_sep(const char *string, int sep, char **argz, size_t *argz_len) {
-	return OK;
+	if (NULL == argz || NULL == string || NULL == argz_len)
+		return ERROR;
+
+	for (int i = 0; i < *argz_len; i++)
+		if ((char)sep == string[i]) *(*argz + i) = '\0';
+		else *(*argz + i) = string[i];
+
+		return OK;
 }
 
 size_t argz_count(const char *argz, size_t arg_len) {

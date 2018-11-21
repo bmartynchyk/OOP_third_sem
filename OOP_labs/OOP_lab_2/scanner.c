@@ -1,8 +1,153 @@
 
 #include "scanner.h"
+#include <stdlib.h>
 
+// Less then 256 for being enough to read two strings 'manufacturer[127]' and 'model[127]'
+#define FIELDS_AMOUNT 7
+#define STRUCT_BIT_SIZE 276
+
+// 's1' - points to begin of extracting element, 's2' - points to the end of this one
+#define MOVE_NEXT(s1, s2) s1 = s2 + 1; s2 = strstr(s1, ";")
+// Extracts value into 'dest'
+#define EXTRAXT_STR(dest, s1, s2) strncpy(dest, s1, s2 - s1); dest[s2 - s1] = '\0';
+
+// Safely open file 'fname' with mode 'fmode', abort if failed
+#define SAFE_OPEN_FILE(file, fname, fmode) if (!(file = fopen(fname, fmode))) { \
+printf("ERROR: Could not open file '%s'!\n\n", fname); \
+return; \
+}
+
+const char *fields[FIELDS_AMOUNT] = { "manufacturer", "model", 
+	"year", "price", "x_size", "y_size", "id" };
+const int fld_size[FIELDS_AMOUNT] = { 128, 128, 4, 4, 4, 4, 4 };
+
+/*-------------------------------------------------------------------------------------------------*
+Name:         free_2d_array
+Usage:        free_2d_array(arr, size);
+Synopsis:     empty space after using two-dimensional array 'arr'. Result - cleared pointer 'arr'.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
+void free_2d_array(void **arr, int size)
+{
+	for (int i = 0; i < size; i++) free(arr[i]);
+	free(arr);
+}
+
+// Temp function
+void out_one_scan(SCAN_INFO * const scan) {
+	printf("Manufacturer: %s\n", (*scan).manufacturer);
+	printf("Model: %s\n", (*scan).model);
+	printf("Year: %d\n", (*scan).year);
+	printf("Price: %f\n", (*scan).price);
+	printf("X-size: %d\n", (*scan).x_size);
+	printf("Y-size: %d\n", (*scan).y_size);
+}
+
+// Temp function
+void out_scans_info(SCAN_INFO * const scans, int amount) {
+	for (int i = 0; i < amount; i++) {
+		printf("\n###[%d]###\n", i);
+		out_one_scan(scans + i);
+	}
+}
+
+/*-------------------------------------------------------------------------------------------------*
+Name:         create_db
+Usage:        create_db("f1/f2/data.csv", "f3/database");
+Prototype in: sacnner.h
+Synopsis:     extracts record from 'csv' file. Separates records by values. Removes dublicate records.
+Fills structures 'SCAN_INFO' with values of records(each record is 1 structure) and pushes them into 
+binary database file. Result is new binary file 'db' with unique values from file 'csv'.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
 void create_db(const char *csv, const char *db) {
+	int count = 0, i = 0,
+		left = 0, right = 0, midd = 0; // For binary search
+	FILE *csv_file = NULL, *db_file = NULL;
+	char buff[STRUCT_BIT_SIZE],
+		*substr1 = NULL, *substr2 = NULL, //For extracting elements into struct
+		**str_hive = NULL;
+	SCAN_INFO scan;
 
+	SAFE_OPEN_FILE(csv_file, csv, "r");
+
+	while (NULL == feof(csv_file)) { //Getting strings form '*.csv' file, checking on buffer overloading
+		if (STRUCT_BIT_SIZE <= strlen(fgets(buff, STRUCT_BIT_SIZE, csv_file))) {
+			printf("\nERROR: Buffer overloaded! Records should be less 300 characters!\n");
+			return;
+		}
+		count++;
+	}
+
+	str_hive = (char**)malloc(count * sizeof(char*));
+	fseek(csv_file, 0, SEEK_SET);
+
+	i = 0;
+	while (NULL == feof(csv_file)) {
+		if (NULL == fgets(buff, STRUCT_BIT_SIZE, csv_file)) {
+			printf("\nERROR: Reading failure string='%s' from file='%s'!\n", buff, csv);
+			return;
+		}
+
+		str_hive[i] = (char*)malloc(STRUCT_BIT_SIZE * sizeof(char));
+		strcpy(str_hive[i], buff);
+		i++;
+	}
+
+	fclose(csv_file);
+	
+	SAFE_OPEN_FILE(db_file, db, "wb");
+	if (!db_file) {
+		free_2d_array(str_hive, count);
+		return;
+	}
+
+	fwrite(&count, sizeof(count), 1, db_file);
+
+	// The last string may be differ from previous ones. We compare full string and it have 
+	//character '\n'. Last string may have this character or no. Function 'strstr' return
+	//different results for strings "111\n\0" and "111\0". So to escape this, performs backward 
+	//search. It escapes cases with skipping last string if it equal to another one.
+	for (int i = count - 1; i > 0; i--) {
+		if (NULL == str_hive[i]) continue;
+
+		for (int j = i - 1; j >= 0; j--) // Deleting the same values
+			if (NULL != str_hive[j] && strstr(str_hive[j], str_hive[i])) {
+				free(str_hive[j]);
+				str_hive[j] = NULL;
+				count--;
+			}
+	}
+
+	// Latest id for scanner will be less than number of scanners on 1. Use this feature for cycle.
+	for (int i = 0, id = 0; id < count; i++) {
+		if (NULL == str_hive[i]) continue;
+
+		char dest[20]; // Destination string variable
+		substr1 = str_hive[i], substr2 = strstr(substr1, ";");
+
+		// Subtracting 2 because of adding 'id' field and the way of last string conversion for field 'y_sze'
+		for (int j = 0; j < FIELDS_AMOUNT - 2; j++) {
+			EXTRAXT_STR(dest, substr1, substr2); // Extracting current value for specific field
+			MOVE_NEXT(substr1, substr2);
+
+			switch (j) {
+			case 0: strcpy(scan.manufacturer, dest); break;
+			case 1: strcpy(scan.model, dest); break;
+			case 2: scan.year = atoi(dest); break;
+			case 3: scan.price = atof(dest); break;
+			case 4: scan.x_size = atoi(dest); break;
+			}
+		}
+
+		scan.y_size = atoi(substr1);
+		scan.id = id++; // Firstly assignes 'id' then it increments
+
+		fwrite(&scan, sizeof(SCAN_INFO), 1, db_file);
+	}
+
+	fclose(db_file);
+	free_2d_array(str_hive, count);
 }
 
 int make_index(const char *db, const char *field_name) {

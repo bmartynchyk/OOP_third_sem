@@ -7,5 +7,7 @@
 #define STOP _getch()
 
 void main() {
+
+	create_db("Database/scanners.csv", "Database/database");
 	STOP;
 }

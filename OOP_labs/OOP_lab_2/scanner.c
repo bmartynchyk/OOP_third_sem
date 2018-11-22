@@ -2,7 +2,7 @@
 #include "scanner.h"
 #include <stdlib.h>
 
-#define FIELDS_AMOUNT 7
+#define FIELDS_NUM 7
 #define FILE_PATH_BUFF 128
 #define STRUCT_BIT_SIZE 276
 #define FILE_READ_BUFF 128
@@ -10,13 +10,14 @@
 // 's1' - points to begin of extracting element, 's2' - points to the end of this one
 #define MOVE_NEXT(s1, s2) s1 = s2 + 1; s2 = strstr(s1, ";")
 // Extracts value into 'dest'
-#define EXTRAXT_STR(dest, s1, s2) strncpy(dest, s1, s2 - s1); dest[s2 - s1] = '\0';
+#define EXTRACT_STR(dest, s1, s2) strncpy(dest, s1, s2 - s1); dest[s2 - s1] = '\0';
 
 // Safely open file 'fname' with mode 'fmode', abort if failed
 #define SAFE_OPEN_FILE(file, fname, fmode) if (!(file = fopen(fname, fmode))) { \
-printf("ERROR: Could not open file '%s'!\n\n", fname); \
+printf("\nERROR: Could not open file '%s'!\n", fname); \
 return; \
 }
+
 
 /*-------------------------------------------------------------------------------------------------*
 Name:         cmp_<fieldname>
@@ -51,9 +52,9 @@ int cmp_id(SCAN_INFO *s1, SCAN_INFO *s2) {
 
 typedef int(*Comparator)(SCAN_INFO *s1, SCAN_INFO *s2); // Prototype for comparison funcs
 
-const char *fields[FIELDS_AMOUNT] = { "manufacturer", "model", 
+const char *fields[FIELDS_NUM] = { "manufacturer", "model", 
 	"year", "price", "x_size", "y_size", "id" };
-const Comparator funcs[FIELDS_AMOUNT] = { &cmp_manuf, &cmp_model,
+const Comparator funcs[FIELDS_NUM] = { &cmp_manuf, &cmp_model,
 &cmp_year, &cmp_price, &cmp_x_size, &cmp_y_size, &cmp_id };
 
 
@@ -161,10 +162,6 @@ void create_db(const char *csv, const char *db) {
 	fclose(csv_file);
 	
 	SAFE_OPEN_FILE(db_file, db, "wb");
-	if (!db_file) {
-		free_2d_array(str_hive, count);
-		return;
-	}
 
 	// The last string may be differ from previous ones. We compare full string and it have 
 	//character '\n'. Last string may have this character or no. Function 'strstr' return
@@ -191,8 +188,8 @@ void create_db(const char *csv, const char *db) {
 		substr1 = str_hive[i], substr2 = strstr(substr1, ";");
 
 		// Subtracting 2 because of adding 'id' field and the way of last string conversion for field 'y_sze'
-		for (int j = 0; j < FIELDS_AMOUNT - 2; j++) {
-			EXTRAXT_STR(dest, substr1, substr2); // Extracting current value for specific field
+		for (int j = 0; j < FIELDS_NUM - 2; j++) {
+			EXTRACT_STR(dest, substr1, substr2); // Extracting current value for specific field
 			MOVE_NEXT(substr1, substr2);
 
 			switch (j) {
@@ -236,10 +233,10 @@ int make_index(const char *db, const char *field_name) {
 	fread(set, sizeof(SCAN_INFO), scans_num, db_file);
 	fclose(db_file);
 
-	while (FIELDS_AMOUNT > fld_num && strcmp(fields[fld_num], field_name))
+	while (FIELDS_NUM > fld_num && strcmp(fields[fld_num], field_name))
 		fld_num++; // Detect number of field
 
-	if (FIELDS_AMOUNT <= fld_num) {
+	if (FIELDS_NUM <= fld_num) {
 		printf("ERROR: Invalid field name, correct it and try again!");
 		return 0;
 	}
@@ -271,7 +268,7 @@ by increase of according field.
 Return value: none.
 *--------------------------------------------------------------------------------------------------*/
 void reindex(const char *db) {
-	for (int i = 0; i < FIELDS_AMOUNT; i++)
+	for (int i = 0; i < FIELDS_NUM; i++)
 		if (0 == make_index(db, fields[i])) {
 			printf("ERROR: Failed creating index file '%s.idx' for database '%s'!\n", fields[i], db);
 			return;
@@ -296,7 +293,7 @@ RECORD_SET* get_recs_by_index(const char *db, char *idx_field) {
 	//for this func stored in field of 'set' structure(set->rec_nmb)
 
 	if (strlen(idx_field) + 4 > FILE_PATH_BUFF) { // Checking buffer overflow for 'file_name'
-		printf("ERROR: Overloaded buffer for file path/name! It should be less then 128!");
+		printf("ERROR: Overloaded buffer for file path/name! It should be less then 128!\n");
 		return NULL;
 	}
 	strcpy(file_name, idx_field); // Creating file name with extension

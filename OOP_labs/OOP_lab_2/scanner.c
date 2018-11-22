@@ -19,7 +19,7 @@ return; \
 
 const char *fields[FIELDS_AMOUNT] = { "manufacturer", "model", 
 	"year", "price", "x_size", "y_size", "id" };
-const int fld_size[FIELDS_AMOUNT] = { 128, 128, 4, 4, 4, 4, 4 };
+
 
 /*-------------------------------------------------------------------------------------------------*
 Name:         free_2d_array
@@ -35,12 +35,12 @@ void free_2d_array(void **arr, int size)
 
 // Temp function
 void out_one_scan(SCAN_INFO * const scan) {
-	printf("Manufacturer: %s\n", (*scan).manufacturer);
-	printf("Model: %s\n", (*scan).model);
-	printf("Year: %d\n", (*scan).year);
-	printf("Price: %f\n", (*scan).price);
-	printf("X-size: %d\n", (*scan).x_size);
-	printf("Y-size: %d\n", (*scan).y_size);
+	printf("Manufacturer: %s\n", scan->manufacturer);
+	printf("Model: %s\n", scan->model);
+	printf("Year: %d\n", scan->year);
+	printf("Price: %f\n", scan->price);
+	printf("X-size: %d\n", scan->x_size);
+	printf("Y-size: %d\n", scan->y_size);
 }
 
 // Temp function
@@ -102,8 +102,6 @@ void create_db(const char *csv, const char *db) {
 		return;
 	}
 
-	fwrite(&count, sizeof(count), 1, db_file);
-
 	// The last string may be differ from previous ones. We compare full string and it have 
 	//character '\n'. Last string may have this character or no. Function 'strstr' return
 	//different results for strings "111\n\0" and "111\0". So to escape this, performs backward 
@@ -118,6 +116,8 @@ void create_db(const char *csv, const char *db) {
 				count--;
 			}
 	}
+
+	fwrite(&count, sizeof(count), 1, db_file);
 
 	// Latest id for scanner will be less than number of scanners on 1. Use this feature for cycle.
 	for (int i = 0, id = 0; id < count; i++) {
@@ -150,8 +150,49 @@ void create_db(const char *csv, const char *db) {
 	free_2d_array(str_hive, count);
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         make_index
+Usage:        make_index("f1/f2/database", "field_name");
+Prototype in: sacnner.h
+Synopsis:     makes an index-file(with extension '.idx') in which has ids of structures. This ids is
+set's of structures ids which sorted by increase by specific field.
+Return value: returns 1 in case if all performed without mistakes else returns 0.
+*--------------------------------------------------------------------------------------------------*/
 int make_index(const char *db, const char *field_name) {
-	return 0;
+	FILE *db_file = NULL, *res_file = NULL;
+	int fld_num = 0, // Number of structure's field
+		scans_num = 0; // Amount structures in file
+	char filename[20];
+	SCAN_INFO *set;
+
+	SAFE_OPEN_FILE(db_file, db, "rb");
+
+	fread(&scans_num, sizeof(int), 1, db_file);
+	printf("set.rec_nmb: %d\n", scans_num);
+	set = (SCAN_INFO*)malloc(scans_num * sizeof(SCAN_INFO));
+	fread(set, sizeof(SCAN_INFO), scans_num, db_file);
+	out_scans_info(set, scans_num);
+	fclose(db_file);
+
+	while (FIELDS_AMOUNT > fld_num && strcmp(fields[fld_num], field_name))
+		fld_num++; // Detect number of field
+
+	strcpy(filename, "Database/");
+	strcat(filename, fields[fld_num]); // Creating file name with extension
+	strcat(filename, ".idx");
+
+	printf("\nField num: %d\n", fld_num);
+	printf("Filename: %s\n", filename);
+
+	SAFE_OPEN_FILE(res_file, filename, "w");
+
+	//for (int i = 0; i < scans_num; i++)
+	//	fprintf(res_file, "%d ", set[i].id);
+
+	fclose(res_file);
+	free(set);
+
+	return 1;
 }
 
 void reindex(const char *db) {

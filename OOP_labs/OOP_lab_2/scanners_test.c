@@ -9,5 +9,6 @@
 void main() {
 
 	create_db("Database/scanners.csv", "Database/database");
+	make_index("Database/database", "y_size");
 	STOP;
 }

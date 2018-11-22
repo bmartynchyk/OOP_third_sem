@@ -12,6 +12,7 @@ void main() {
 	create_db("Database/scanners.csv", "Database/database");
 	make_index("Database/database", "year");
 	reindex("Database/database");
-	set = get_recs_by_index("Database/database", "Database/year");
+	set = get_recs_by_index("Database/database", "Database/manufacturer");
+	print_rec_set(set);
 	STOP;
 }

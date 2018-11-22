@@ -343,6 +343,27 @@ RECORD_SET* select(const char *db, const char *field, const char *value) {
 	return NULL;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         print_rec_set
+Usage:        print_rec_set(&set);
+Prototype in: sacnner.h
+Synopsis:     outputs information about scanners to console.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
 void print_rec_set(RECORD_SET *rs) {
+	if (NULL == rs || NULL == rs->recs) {
+		printf("ERROR: Uninitialized income value! Income value equals to NULL!");
+		return;
+	}
 
+	for (int i = 0; i < rs->rec_nmb; i++) {
+		printf("\n###[%d]###\n", i);
+		printf("Id: %d\n", rs->recs[i].id);
+		printf("Manufacturer: %s\n", rs->recs[i].manufacturer);
+		printf("Model: %s\n", rs->recs[i].model);
+		printf("Year: %d\n", rs->recs[i].year);
+		printf("Price: %f\n", rs->recs[i].price);
+		printf("X-size: %d\n", rs->recs[i].x_size);
+		printf("Y-size: %d\n", rs->recs[i].y_size);
+	}
 }

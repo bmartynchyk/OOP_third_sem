@@ -2,9 +2,10 @@
 #include "scanner.h"
 #include <stdlib.h>
 
-// Less then 256 for being enough to read two strings 'manufacturer[127]' and 'model[127]'
 #define FIELDS_AMOUNT 7
+#define FILE_PATH_BUFF 128
 #define STRUCT_BIT_SIZE 276
+#define FILE_READ_BUFF 128
 
 // 's1' - points to begin of extracting element, 's2' - points to the end of this one
 #define MOVE_NEXT(s1, s2) s1 = s2 + 1; s2 = strstr(s1, ";")
@@ -48,7 +49,7 @@ int cmp_id(SCAN_INFO *s1, SCAN_INFO *s2) {
 }
 
 
-typedef int(*Comparator)(SCAN_INFO *s1, SCAN_INFO *s2); // Prototype for comparation funcs
+typedef int(*Comparator)(SCAN_INFO *s1, SCAN_INFO *s2); // Prototype for comparison funcs
 
 const char *fields[FIELDS_AMOUNT] = { "manufacturer", "model", 
 	"year", "price", "x_size", "y_size", "id" };
@@ -277,8 +278,53 @@ void reindex(const char *db) {
 		}
 }
 
-RECORD_SET * get_recs_by_index(const char *db, char *idx_field){
-	return NULL;
+/*-------------------------------------------------------------------------------------------------*
+Name:         get_recs_by_index
+Usage:        get_recs_by_index("Database/db1", "Database/year");
+Prototype in: sacnner.h
+Synopsis:     reads the order of scanners from 'idx_filed + .idx' file. And forms result variable by
+according to this order.
+Return value: RECORD_SET* variable, which contains the array of scanners and size of it's array. In
+another uncorrect case returns NULL.
+*--------------------------------------------------------------------------------------------------*/
+RECORD_SET* get_recs_by_index(const char *db, char *idx_field) {
+	FILE *idx_file = NULL, *db_file = NULL;
+	SCAN_INFO *scans = NULL;
+	char file_name[FILE_PATH_BUFF]; // Target file's name
+	int *ids = NULL; // Array of ids stored in 'idx_filed' file
+	RECORD_SET *set = (RECORD_SET*)malloc(sizeof(RECORD_SET)); // The number of scanners
+	//for this func stored in field of 'set' structure(set->rec_nmb)
+
+	if (strlen(idx_field) + 4 > FILE_PATH_BUFF) { // Checking buffer overflow for 'file_name'
+		printf("ERROR: Overloaded buffer for file path/name! It should be less then 128!");
+		return NULL;
+	}
+	strcpy(file_name, idx_field); // Creating file name with extension
+	strcat(file_name, ".idx");
+
+	SAFE_OPEN_FILE(db_file, db, "rb");
+
+	fread(&(set->rec_nmb), sizeof(int), 1, db_file);
+	scans = (SCAN_INFO*)malloc(set->rec_nmb * sizeof(SCAN_INFO));
+	ids = (int*)malloc(set->rec_nmb * sizeof(int));
+	set->recs = (SCAN_INFO*)malloc(set->rec_nmb * sizeof(SCAN_INFO));
+	fread(scans, sizeof(SCAN_INFO), set->rec_nmb, db_file);
+
+	fclose(db_file);
+
+	SAFE_OPEN_FILE(idx_file, file_name, "r");
+
+	for (int  i = 0; i<set->rec_nmb; i++)
+		fscanf(idx_file, "%d", (ids + i));
+
+	fclose(idx_file);
+
+	for (int i = 0; i < set->rec_nmb; i++)
+		set->recs[i] = scans[ids[i]];
+
+	free(scans); free(ids);
+
+	return set;
 }
 
 void del_scanner(const char *db, int id) {

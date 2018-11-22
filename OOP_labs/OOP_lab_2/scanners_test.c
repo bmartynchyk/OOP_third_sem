@@ -7,8 +7,11 @@
 #define STOP _getch()
 
 void main() {
+	RECORD_SET *set = NULL;
+
 	create_db("Database/scanners.csv", "Database/database");
 	make_index("Database/database", "year");
 	reindex("Database/database");
+	set = get_recs_by_index("Database/database", "Database/year");
 	STOP;
 }

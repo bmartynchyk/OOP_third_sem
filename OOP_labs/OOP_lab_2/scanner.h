@@ -25,6 +25,7 @@ typedef unsigned int uint32;
 void create_db(const char *csv, const char *db);
 int make_index(const char *db, const char *field_name);
 void reindex(const char *db);
+RECORD_SET * get_recs_by_index(const char *db, char *idx_field);
 void del_scanner(const char *db, int id);
 void add_scanner(const char *db, const char* scanner_str);
 void print_db(const char *db);

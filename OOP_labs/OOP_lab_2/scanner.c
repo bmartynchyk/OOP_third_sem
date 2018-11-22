@@ -260,8 +260,25 @@ int make_index(const char *db, const char *field_name) {
 	return 1;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         reindex
+Usage:        reindex();
+Prototype in: sacnner.h
+Synopsis:    creates an index file (with the extension “.idx”) in which there are identifiers of 
+structures for all fields. These identifiers are the identifiers of the structures, which are sorted 
+by increase of according field.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
 void reindex(const char *db) {
+	for (int i = 0; i < FIELDS_AMOUNT; i++)
+		if (0 == make_index(db, fields[i])) {
+			printf("ERROR: Failed creating index file '%s.idx' for database '%s'!\n", fields[i], db);
+			return;
+		}
+}
 
+RECORD_SET * get_recs_by_index(const char *db, char *idx_field){
+	return NULL;
 }
 
 void del_scanner(const char *db, int id) {

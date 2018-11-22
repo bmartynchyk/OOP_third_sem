@@ -17,8 +17,43 @@ printf("ERROR: Could not open file '%s'!\n\n", fname); \
 return; \
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         cmp_<fieldname>
+Usage:        cmp_<fieldname>(&scan1, &scan2);
+Synopsis:     set of functions which compare spesific structure field.
+Return value: returns 1 if 's1' more then 's2' otherwise - returns 0.
+*--------------------------------------------------------------------------------------------------*/
+int cmp_manuf(SCAN_INFO *s1, SCAN_INFO *s2) {
+	int tmp = strcmp(s1->manufacturer, s2->manufacturer);
+	return tmp > 0 ? 1 : 0;
+}
+int cmp_model(SCAN_INFO *s1, SCAN_INFO *s2) {
+	int tmp = strcmp(s1->model, s2->model);
+	return tmp > 0 ? 1 : 0;
+}
+int cmp_year(SCAN_INFO *s1, SCAN_INFO *s2) {
+	return s1->year > s2->year;
+}
+int cmp_price(SCAN_INFO *s1, SCAN_INFO *s2) {
+	return s1->price > s2->price;
+}
+int cmp_x_size(SCAN_INFO *s1, SCAN_INFO *s2) {
+	return s1->x_size > s2->x_size;
+}
+int cmp_y_size(SCAN_INFO *s1, SCAN_INFO *s2) {
+	return s1->y_size > s2->y_size;
+}
+int cmp_id(SCAN_INFO *s1, SCAN_INFO *s2) {
+	return s1->id > s2->id;
+}
+
+
+typedef int(*Comparator)(SCAN_INFO *s1, SCAN_INFO *s2); // Prototype for comparation funcs
+
 const char *fields[FIELDS_AMOUNT] = { "manufacturer", "model", 
 	"year", "price", "x_size", "y_size", "id" };
+const Comparator funcs[FIELDS_AMOUNT] = { &cmp_manuf, &cmp_model,
+&cmp_year, &cmp_price, &cmp_x_size, &cmp_y_size, &cmp_id };
 
 
 /*-------------------------------------------------------------------------------------------------*
@@ -35,6 +70,7 @@ void free_2d_array(void **arr, int size)
 
 // Temp function
 void out_one_scan(SCAN_INFO * const scan) {
+	printf("Id: %d\n", scan->id);
 	printf("Manufacturer: %s\n", scan->manufacturer);
 	printf("Model: %s\n", scan->model);
 	printf("Year: %d\n", scan->year);
@@ -49,6 +85,33 @@ void out_scans_info(SCAN_INFO * const scans, int amount) {
 		printf("\n###[%d]###\n", i);
 		out_one_scan(scans + i);
 	}
+}
+
+/*-------------------------------------------------------------------------------------------------*
+Name:         qsort_scans
+Usage:        qsort_scans(rec_set, func_criterion);
+Synopsis:     quicksort function which sorts incoming 'set' structures by 'criterion' func.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
+void qsort_scans(SCAN_INFO *set, int left, int right, Comparator criterion) {
+	int l = left, r = right;
+	SCAN_INFO temp, pivot = set[(l + r) / 2];
+
+	do { // Criterion returns 0 if in second value will be more then first
+		while (criterion(&pivot, set + l)) l++;
+		while (criterion(set + r, &pivot)) r--;
+
+		if (l <= r) {
+			temp = set[l];
+			set[l] = set[r];
+			set[r] = temp;
+
+			l++; r--;
+		}
+	} while (l < r);
+
+	if (left < r) qsort_scans(set, left, r, criterion);
+	if (l < right) qsort_scans(set, l, right, criterion);
 }
 
 /*-------------------------------------------------------------------------------------------------*
@@ -162,32 +225,34 @@ int make_index(const char *db, const char *field_name) {
 	FILE *db_file = NULL, *res_file = NULL;
 	int fld_num = 0, // Number of structure's field
 		scans_num = 0; // Amount structures in file
-	char filename[20];
+	char filename[64];
 	SCAN_INFO *set;
 
 	SAFE_OPEN_FILE(db_file, db, "rb");
 
 	fread(&scans_num, sizeof(int), 1, db_file);
-	printf("set.rec_nmb: %d\n", scans_num);
 	set = (SCAN_INFO*)malloc(scans_num * sizeof(SCAN_INFO));
 	fread(set, sizeof(SCAN_INFO), scans_num, db_file);
-	out_scans_info(set, scans_num);
 	fclose(db_file);
 
 	while (FIELDS_AMOUNT > fld_num && strcmp(fields[fld_num], field_name))
 		fld_num++; // Detect number of field
 
-	strcpy(filename, "Database/");
-	strcat(filename, fields[fld_num]); // Creating file name with extension
+	if (FIELDS_AMOUNT <= fld_num) {
+		printf("ERROR: Invalid field name, correct it and try again!");
+		return 0;
+	}
+
+	strcpy(filename, "Database/"); // Creating file name with extension
+	strcat(filename, fields[fld_num]);
 	strcat(filename, ".idx");
 
-	printf("\nField num: %d\n", fld_num);
-	printf("Filename: %s\n", filename);
+	qsort_scans(set, 0, scans_num - 1, funcs[fld_num]);
 
 	SAFE_OPEN_FILE(res_file, filename, "w");
 
-	//for (int i = 0; i < scans_num; i++)
-	//	fprintf(res_file, "%d ", set[i].id);
+	for (int i = 0; i < scans_num; i++)
+		fprintf(res_file, "%d ", set[i].id);
 
 	fclose(res_file);
 	free(set);

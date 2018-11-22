@@ -7,8 +7,7 @@
 #define STOP _getch()
 
 void main() {
-
 	create_db("Database/scanners.csv", "Database/database");
-	make_index("Database/database", "y_size");
+	make_index("Database/database", "year");
 	STOP;
 }

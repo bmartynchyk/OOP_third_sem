@@ -335,8 +335,42 @@ void add_scanner(const char *db, const char* scanner_str) {
 
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         print_db
+Usage:        print_db(db_name);
+Prototype in: sacnner.h
+Synopsis:     outputs information about scanners to '<db_name>_print.txt' file.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
 void print_db(const char *db) {
+	FILE *db_file = NULL, *out_file = NULL;
+	SCAN_INFO *scans = NULL;
+	int scans_num = 0;
+	char file_name[FILE_PATH_BUFF];
 
+	SAFE_OPEN_FILE(db_file, db, "rb");
+
+	fread(&scans_num, sizeof(int), 1, db_file);
+	scans = (SCAN_INFO*)malloc(scans_num * sizeof(SCAN_INFO));
+	fread(scans, sizeof(SCAN_INFO), scans_num, db_file);
+
+	fclose(db_file);
+
+	if (strlen(db) + 10 > FILE_PATH_BUFF) {
+		printf("ERROR: Overloaded buffer for file path/name! It should be less then 128!");
+		return;
+	}
+	strcpy(file_name, db);
+	strcat(file_name, "_print.txt");
+
+	SAFE_OPEN_FILE(out_file, file_name, "w");
+
+	for (int i = 0; i < scans_num; i++)
+		fprintf(out_file, "%d\t%s; %s; %d; %f; %d; %d;\n", scans[i].id, scans[i].manufacturer, scans[i].model,
+			scans[i].year, scans[i].price, scans[i].x_size, scans[i].y_size);
+
+	fclose(out_file);
+	free(scans);
 }
 
 RECORD_SET* select(const char *db, const char *field, const char *value) {

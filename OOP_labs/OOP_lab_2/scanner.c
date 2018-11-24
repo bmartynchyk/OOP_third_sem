@@ -1,22 +1,29 @@
 
 #include "scanner.h"
 #include <stdlib.h>
+#include <math.h>
 
 #define FIELDS_NUM 7
+#define DEFAULT_ACCUR 2
 #define FILE_PATH_BUFF 128
 #define STRUCT_BIT_SIZE 276
-#define FILE_READ_BUFF 128
 
-// 's1' - points to begin of extracting element, 's2' - points to the end of this one
+// 's1' - points to begin of extracting element, 's2' - points to the end of this one.
 #define MOVE_NEXT(s1, s2) s1 = s2 + 1; s2 = strstr(s1, ";")
 // Extracts value into 'dest'
 #define EXTRACT_STR(dest, s1, s2) strncpy(dest, s1, s2 - s1); dest[s2 - s1] = '\0';
 
-// Safely open file 'fname' with mode 'fmode', abort if failed
+// Safely open file 'fname' with mode 'fmode', returns 0 if failed.
 #define SAFE_OPEN_FILE(file, fname, fmode) if (!(file = fopen(fname, fmode))) { \
 printf("\nERROR: Could not open file '%s'!\n", fname); \
-return; \
-}
+return 0; }
+
+// Detects number of field. If field name 'fld' isn't correct returns 0.
+#define GET_FIELD_NUM(fld, fnum)\
+while (FIELDS_NUM > fnum && strcmp(fields[fnum], fld)) fnum++; \
+if (fnum == FIELDS_NUM) { \
+printf("\nERROR: Invalid field name, correct it and try again!\n"); \
+return 0; }
 
 
 /*-------------------------------------------------------------------------------------------------*
@@ -68,7 +75,7 @@ int ifeqls_year(SCAN_INFO *s1, const char *year) {
 	return s1->year == atoi(year);
 }
 int ifeqls_price(SCAN_INFO *s1, const char *price) {
-	return s1->price == atof(price);
+	return s1->price == (float)atof(price);
 }
 int ifeqls_x_size(SCAN_INFO *s1, const char *x_size) {
 	return s1->x_size == atoi(x_size);
@@ -89,6 +96,7 @@ const Comparator cmp_funcs[FIELDS_NUM] = { &cmp_manuf, &cmp_model,
 	&cmp_year, &cmp_price, &cmp_x_size, &cmp_y_size, &cmp_id };
 const IsEqualler eql_funcs[FIELDS_NUM] = { &ifeqls_manuf, &ifeqls_model,
 	&ifeqls_year, &ifeqls_price, &ifeqls_x_size, &ifeqls_y_size, &ifeqls_id };
+
 
 /*-------------------------------------------------------------------------------------------------*
 Name:         free_2d_array
@@ -265,13 +273,7 @@ int make_index(const char *db, const char *field_name) {
 	fread(set, sizeof(SCAN_INFO), scans_num, db_file);
 	fclose(db_file);
 
-	while (FIELDS_NUM > fld_num && strcmp(fields[fld_num], field_name))
-		fld_num++; // Detect number of field
-
-	if (FIELDS_NUM <= fld_num) {
-		printf("ERROR: Invalid field name, correct it and try again!");
-		return 0;
-	}
+	GET_FIELD_NUM(field_name, fld_num, 0);
 
 	strcpy(filename, "Database/"); // Creating file name with extension
 	strcat(filename, fields[fld_num]);
@@ -426,13 +428,7 @@ RECORD_SET* select(const char *db, const char *field, const char *value) {
 
 	fclose(db_file);
 
-	while (FIELDS_NUM > fld_num && strcmp(fields[fld_num], field))
-		fld_num++; // Detect number of field
-
-	if (fld_num == FIELDS_NUM) {
-		printf("Error: Incorrect field name! Try to type again!");
-		return;
-	}
+	GET_FIELD_NUM(field, fld_num, 0);
 
 	is_equal = eql_funcs[fld_num];
 	set->recs = (SCAN_INFO*)malloc(sizeof(SCAN_INFO)); // Allocation memory for next using realloc
@@ -446,7 +442,7 @@ RECORD_SET* select(const char *db, const char *field, const char *value) {
 		}
 
 	if (0 == set->rec_nmb) {
-		printf("MESSAGE: Query by criterion '%s = %s' from '%s', gave no results!", field, value, db);
+		printf("\nMESSAGE: Query by criterion '%s = %s' from '%s', gave no results!\n", field, value, db);
 		free(set->recs);
 	}
 
@@ -462,7 +458,7 @@ Return value: none.
 *--------------------------------------------------------------------------------------------------*/
 void print_rec_set(RECORD_SET *rs) {
 	if (NULL == rs || NULL == rs->recs) {
-		printf("ERROR: Uninitialized income value! Income value equals to NULL!");
+		printf("\nERROR: Uninitialized income value! Income value equals to NULL!\n");
 		return;
 	}
 
@@ -472,7 +468,7 @@ void print_rec_set(RECORD_SET *rs) {
 		printf("Manufacturer: %s\n", rs->recs[i].manufacturer);
 		printf("Model: %s\n", rs->recs[i].model);
 		printf("Year: %d\n", rs->recs[i].year);
-		printf("Price: %f\n", rs->recs[i].price);
+		printf("Price: %lf\n", rs->recs[i].price);
 		printf("X-size: %d\n", rs->recs[i].x_size);
 		printf("Y-size: %d\n", rs->recs[i].y_size);
 	}

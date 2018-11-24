@@ -13,5 +13,7 @@ void main() {
 	set = get_recs_by_index("Database/database", "Database/manufacturer");
 	print_rec_set(set);
 	print_db("Database/database");
+	set = select("Database/database", "model", "JetScan7");
+	print_rec_set(set);
 	STOP;
 }

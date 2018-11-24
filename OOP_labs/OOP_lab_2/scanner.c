@@ -22,7 +22,7 @@ return; \
 /*-------------------------------------------------------------------------------------------------*
 Name:         cmp_<fieldname>
 Usage:        cmp_<fieldname>(&scan1, &scan2);
-Synopsis:     set of functions which compare spesific structure field.
+Synopsis:     set of functions which compare specific structures' field.
 Return value: returns 1 if 's1' more then 's2' otherwise - returns 0.
 *--------------------------------------------------------------------------------------------------*/
 int cmp_manuf(SCAN_INFO *s1, SCAN_INFO *s2) {
@@ -49,14 +49,46 @@ int cmp_id(SCAN_INFO *s1, SCAN_INFO *s2) {
 	return s1->id > s2->id;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         ifeqls_<fieldname>
+Usage:        ifeqls_<fieldname>(&scan, "value");
+Synopsis:     set of functions which compare specific structures' field.
+Return value: returns 1 if exact field of structure 'scan'(it is pointed in funcs' name) equals to
+'value' otherwise - returns 0.
+*--------------------------------------------------------------------------------------------------*/
+int ifeqls_manuf(SCAN_INFO *s1, const char *manuf) {
+	int tmp = strcmp(s1->manufacturer, manuf);
+	return tmp == 0;
+}
+int ifeqls_model(SCAN_INFO *s1, const char *model) {
+	int tmp = strcmp(s1->model, model);
+	return tmp == 0;
+}
+int ifeqls_year(SCAN_INFO *s1, const char *year) {
+	return s1->year == atoi(year);
+}
+int ifeqls_price(SCAN_INFO *s1, const char *price) {
+	return s1->price == atof(price);
+}
+int ifeqls_x_size(SCAN_INFO *s1, const char *x_size) {
+	return s1->x_size == atoi(x_size);
+}
+int ifeqls_y_size(SCAN_INFO *s1, const char *y_size) {
+	return s1->y_size == atoi(y_size);
+}
+int ifeqls_id(SCAN_INFO *s1, const char *id) {
+	return s1->id == atoi(id);
+}
 
 typedef int(*Comparator)(SCAN_INFO *s1, SCAN_INFO *s2); // Prototype for comparison funcs
+typedef int(*IsEqualler)(SCAN_INFO *s1, const char *value);
 
 const char *fields[FIELDS_NUM] = { "manufacturer", "model", 
 	"year", "price", "x_size", "y_size", "id" };
-const Comparator funcs[FIELDS_NUM] = { &cmp_manuf, &cmp_model,
-&cmp_year, &cmp_price, &cmp_x_size, &cmp_y_size, &cmp_id };
-
+const Comparator cmp_funcs[FIELDS_NUM] = { &cmp_manuf, &cmp_model,
+	&cmp_year, &cmp_price, &cmp_x_size, &cmp_y_size, &cmp_id };
+const IsEqualler eql_funcs[FIELDS_NUM] = { &ifeqls_manuf, &ifeqls_model,
+	&ifeqls_year, &ifeqls_price, &ifeqls_x_size, &ifeqls_y_size, &ifeqls_id };
 
 /*-------------------------------------------------------------------------------------------------*
 Name:         free_2d_array
@@ -245,7 +277,7 @@ int make_index(const char *db, const char *field_name) {
 	strcat(filename, fields[fld_num]);
 	strcat(filename, ".idx");
 
-	qsort_scans(set, 0, scans_num - 1, funcs[fld_num]);
+	qsort_scans(set, 0, scans_num - 1, cmp_funcs[fld_num]);
 
 	SAFE_OPEN_FILE(res_file, filename, "w");
 
@@ -370,8 +402,55 @@ void print_db(const char *db) {
 	free(scans);
 }
 
+
+/*-------------------------------------------------------------------------------------------------*
+Name:         select
+Usage:        select("Folder/db_name", "fieldname", "value");
+Prototype in: sacnner.h
+Synopsis:     selects scanners from database which respond to criterion 'value' of structure's field.
+Return value: returns RECORD_SET* - set of selected scanners. Returns NULL if there are no scanners
+in database which respond to criterion.
+*--------------------------------------------------------------------------------------------------*/
 RECORD_SET* select(const char *db, const char *field, const char *value) {
-	return NULL;
+	FILE *db_file = NULL;
+	SCAN_INFO temp, *scans = NULL;
+	int fld_num = 0, count = 0;
+	IsEqualler is_equal = NULL;
+	RECORD_SET *set = (RECORD_SET*)malloc(sizeof(RECORD_SET));
+
+	SAFE_OPEN_FILE(db_file, db, "rb");
+
+	fread(&count, sizeof(int), 1, db_file);
+	scans = (SCAN_INFO*)malloc(count * sizeof(SCAN_INFO));
+	fread(scans, sizeof(SCAN_INFO), count, db_file);
+
+	fclose(db_file);
+
+	while (FIELDS_NUM > fld_num && strcmp(fields[fld_num], field))
+		fld_num++; // Detect number of field
+
+	if (fld_num == FIELDS_NUM) {
+		printf("Error: Incorrect field name! Try to type again!");
+		return;
+	}
+
+	is_equal = eql_funcs[fld_num];
+	set->recs = (SCAN_INFO*)malloc(sizeof(SCAN_INFO)); // Allocation memory for next using realloc
+	set->rec_nmb = 0;
+
+	for (int i = 0; i < count; i++)
+		if (is_equal(scans + i, value)) {
+			set->rec_nmb++; // Reallocating memory and copying proper structure
+			realloc(set->recs, set->rec_nmb * sizeof(SCAN_INFO));
+			set->recs[set->rec_nmb - 1] = scans[i];
+		}
+
+	if (0 == set->rec_nmb) {
+		printf("MESSAGE: Query by criterion '%s = %s' from '%s', gave no results!", field, value, db);
+		free(set->recs);
+	}
+
+	return set;
 }
 
 /*-------------------------------------------------------------------------------------------------*

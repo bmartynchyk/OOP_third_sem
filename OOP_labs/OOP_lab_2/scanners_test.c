@@ -15,5 +15,6 @@ void main() {
 	print_db("Database/database");
 	set = select("Database/database", "model", "JetScan7");
 	print_rec_set(set);
+	del_scanner("Database/database", 8);
 	STOP;
 }

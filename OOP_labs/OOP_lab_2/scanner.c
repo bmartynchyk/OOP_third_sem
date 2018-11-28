@@ -358,8 +358,45 @@ RECORD_SET* get_recs_by_index(const char *db, char *idx_field) {
 	return set;
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         del_scanner
+Usage:        del_scanner("Database/db1", id);
+Prototype in: sacnner.h
+Synopsis:     removes structure with equivalent id.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
 void del_scanner(const char *db, int id) {
+	FILE *db_file = NULL;
+	int buff_size = 0, scans_num = 0;
+	SCAN_INFO *buff = NULL;
 
+	SAFE_OPEN_FILE(db_file, db, "rb");
+	fread(&scans_num, sizeof(int), 1, db_file);
+	
+	if (id >= scans_num) { // Checking if current id exists in database
+		printf("\nERROR: Invalid id value, try to type it again!\n");
+		fclose(db_file);
+		return;
+	}
+
+	buff = (SCAN_INFO*)malloc(scans_num * sizeof(SCAN_INFO));
+	fread(buff, sizeof(SCAN_INFO), scans_num, db_file);
+
+	fclose(db_file);
+	remove(db);
+
+	SAFE_OPEN_FILE(db_file, db, "wb");
+
+	for (int i = id + 1; i < scans_num; i++) buff[i].id--;
+
+	buff_size = scans_num - id - 1; // Writing updated information into database
+	scans_num--;
+	fwrite(&scans_num, sizeof(int), 1, db_file);
+	fwrite(buff, sizeof(SCAN_INFO), id, db_file);
+	fwrite((buff + id + 1), sizeof(SCAN_INFO), buff_size, db_file);
+
+	fclose(db_file);
+	free(buff);
 }
 
 void add_scanner(const char *db, const char* scanner_str) {

@@ -1,3 +1,14 @@
+/***************************************************************************************************
+* File:          scanner.c
+* Synopsis:      definition of 'scanner.h' function. In this file released functions for database
+management and auxiliary to them functions. This file also defines new types, constants, constant 
+arrays, macros, which are used in the local functions of this file.
+* Related files: scanner.h
+* Author:        Bohdan Martynchyk KV-74
+* Written:       19/11/2018
+* Last modified: 29/11/2018
+* Source:        https://github.com/bmartynchyk/OOP_third_sem
+***************************************************************************************************/
 
 #include "scanner.h"
 #include <stdlib.h>
@@ -5,7 +16,6 @@
 
 #define STR_BUFF 128
 #define FIELDS_NUM 7
-#define DEFAULT_ACCUR 2
 #define FILE_PATH_BUFF 128
 #define STRUCT_BIT_SIZE 276
 
@@ -13,7 +23,6 @@
 #define MOVE_NEXT(s1, s2) s1 = s2 + 1; s2 = strstr(s1, ";")
 // Extracts value into 'dest'
 #define EXTRACT_STR(dest, s1, s2) strncpy(dest, s1, s2 - s1); dest[s2 - s1] = '\0';
-
 // Safely open file 'fname' with mode 'fmode', returns 0 if failed.
 #define SAFE_OPEN_FILE(file, fname, fmode) if (!(file = fopen(fname, fmode))) { \
 printf("\nERROR: Could not open file '%s'!\n", fname); \
@@ -111,25 +120,6 @@ void free_2d_array(void **arr, int size)
 	free(arr);
 }
 
-// Temp function
-void out_one_scan(SCAN_INFO * const scan) {
-	printf("Id: %d\n", scan->id);
-	printf("Manufacturer: %s\n", scan->manufacturer);
-	printf("Model: %s\n", scan->model);
-	printf("Year: %d\n", scan->year);
-	printf("Price: %f\n", scan->price);
-	printf("X-size: %d\n", scan->x_size);
-	printf("Y-size: %d\n", scan->y_size);
-}
-
-// Temp function
-void out_scans_info(SCAN_INFO * const scans, int amount) {
-	for (int i = 0; i < amount; i++) {
-		printf("\n###[%d]###\n", i);
-		out_one_scan(scans + i);
-	}
-}
-
 /*-------------------------------------------------------------------------------------------------*
 Name:         free_2d_array
 Usage:        free_2d_array(arr, size);
@@ -215,13 +205,10 @@ binary database file. Result is new binary file 'db' with unique values from fil
 Return value: none.
 *--------------------------------------------------------------------------------------------------*/
 void create_db(const char *csv, const char *db) {
-	int count = 0, i = 0,
-		left = 0, right = 0, midd = 0; // For binary search
+	int count = 0, i = 0;
 	FILE *csv_file = NULL, *db_file = NULL;
-	char buff[STRUCT_BIT_SIZE],
-		*substr1 = NULL, *substr2 = NULL, //For extracting elements into struct
-		**str_hive = NULL;
-	SCAN_INFO scan;
+	char buff[STRUCT_BIT_SIZE], **str_hive = NULL;
+	SCAN_INFO *scan = NULL;
 
 	SAFE_OPEN_FILE(csv_file, csv, "r");
 
@@ -273,27 +260,9 @@ void create_db(const char *csv, const char *db) {
 	for (int i = 0, id = 0; id < count; i++) {
 		if (NULL == str_hive[i]) continue;
 
-		char dest[20]; // Destination string variable
-		substr1 = str_hive[i], substr2 = strstr(substr1, ";");
-
-		// Subtracting 2 because of adding 'id' field and the way of last string conversion for field 'y_sze'
-		for (int j = 0; j < FIELDS_NUM - 2; j++) {
-			EXTRACT_STR(dest, substr1, substr2); // Extracting current value for specific field
-			MOVE_NEXT(substr1, substr2);
-
-			switch (j) {
-			case 0: strcpy(scan.manufacturer, dest); break;
-			case 1: strcpy(scan.model, dest); break;
-			case 2: scan.year = atoi(dest); break;
-			case 3: scan.price = atof(dest); break;
-			case 4: scan.x_size = atoi(dest); break;
-			}
-		}
-
-		scan.y_size = atoi(substr1);
-		scan.id = id++; // Firstly assignes 'id' then it increments
-
-		fwrite(&scan, sizeof(SCAN_INFO), 1, db_file);
+		scan = extract_struct(str_hive[i]);
+		scan->id = id++;
+		fwrite(scan, sizeof(SCAN_INFO), 1, db_file);
 	}
 
 	fclose(db_file);
@@ -446,6 +415,7 @@ void del_scanner(const char *db, int id) {
 
 	fclose(db_file);
 	free(buff);
+	reindex(db);
 }
 
 /*-------------------------------------------------------------------------------------------------*
@@ -495,6 +465,7 @@ void add_scanner(const char *db, const char* scanner_str) {
 	fclose(db_file);
 
 	free(buff);
+	reindex(db);
 }
 
 /*-------------------------------------------------------------------------------------------------*

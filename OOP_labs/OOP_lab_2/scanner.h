@@ -1,3 +1,12 @@
+/***************************************************************************************************
+* File:          scanner.h
+* Synopsis:      declarations for file 'scanner.c' functions and structures.
+* Related files: scanner.c
+* Author:        Bohdan Martynchyk KV-74
+* Written:       19/11/2018
+* Last modified: 29/11/2018
+* Source:        https://github.com/bmartynchyk/OOP_third_sem
+****************************************************************************************************/
 
 #ifndef _HEADER_H_
 #define _HEADER_H_
@@ -19,8 +28,6 @@ typedef struct {
 	int rec_nmb;// Number of records
 	SCAN_INFO *recs;// Records 
 } RECORD_SET;
-
-typedef unsigned int uint32;
 
 void create_db(const char *csv, const char *db);
 int make_index(const char *db, const char *field_name);

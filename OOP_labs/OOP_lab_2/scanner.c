@@ -291,7 +291,7 @@ int make_index(const char *db, const char *field_name) {
 	fread(set, sizeof(SCAN_INFO), scans_num, db_file);
 	fclose(db_file);
 
-	GET_FIELD_NUM(field_name, fld_num, 0);
+	GET_FIELD_NUM(field_name, fld_num);
 
 	strcpy(filename, "Database/"); // Creating file name with extension
 	strcat(filename, fields[fld_num]);
@@ -529,7 +529,7 @@ RECORD_SET* select(const char *db, const char *field, const char *value) {
 
 	fclose(db_file);
 
-	GET_FIELD_NUM(field, fld_num, 0);
+	GET_FIELD_NUM(field, fld_num);
 
 	is_equal = eql_funcs[fld_num];
 	set->recs = (SCAN_INFO*)malloc(sizeof(SCAN_INFO)); // Allocation memory for next using realloc

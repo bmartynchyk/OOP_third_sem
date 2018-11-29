@@ -4,6 +4,8 @@
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 
+# Visual Studio 2015 local files
+*.vcxproj.filters
 *.vcxproj.user
 
 # Local VS folders

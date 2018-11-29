@@ -16,5 +16,6 @@ void main() {
 	set = select("Database/database", "model", "JetScan7");
 	print_rec_set(set);
 	del_scanner("Database/database", 8);
+	add_scanner("Database/database", "SAMSUNG;AspireCX700;2018;1479.99;350;410");
 	STOP;
 }

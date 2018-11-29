@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define STR_BUFF 128
 #define FIELDS_NUM 7
 #define DEFAULT_ACCUR 2
 #define FILE_PATH_BUFF 128
@@ -127,6 +128,54 @@ void out_scans_info(SCAN_INFO * const scans, int amount) {
 		printf("\n###[%d]###\n", i);
 		out_one_scan(scans + i);
 	}
+}
+
+/*-------------------------------------------------------------------------------------------------*
+Name:         free_2d_array
+Usage:        free_2d_array(arr, size);
+Synopsis:     empty space after using two-dimensional array 'arr'. Result - cleared pointer 'arr'.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
+int scans_is_equal(SCAN_INFO *s1, SCAN_INFO *s2) {
+	if (!strcmp(s1->manufacturer, s2->manufacturer) && s1->price == s2->price &&
+		!strcmp(s1->model, s2->model) && s1->x_size == s2->x_size && s1->year == s2->year
+		&& s1->y_size == s2->y_size) return 1;
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------------------*
+Name:         extract_struct
+Usage:        extract_struct("SAMSUNG;AspireCX600;2012;979.99;250;310");
+Synopsis:     extracts all values from 'str' to fields of SCAN_INFO structure. Field 'id' doesn't 
+fill by function, the value leaves by default.
+Return value: pointer on extracted structure.
+*--------------------------------------------------------------------------------------------------*/
+SCAN_INFO *extract_struct(char *scanner_str) {
+	SCAN_INFO *scan = (SCAN_INFO*)malloc(sizeof(SCAN_INFO));
+	char temp_str[STRUCT_BIT_SIZE], *substr1, *substr2, 
+		dest[STR_BUFF]; // Destination string variable
+
+	strcpy(temp_str, scanner_str);
+	substr1 = temp_str; substr2 = strstr(substr1, ";");
+
+	// Subtracting 2 because of adding 'id' field and the way of last string conversion for field 'y_sze'
+	for (int j = 0; j < FIELDS_NUM - 2; j++) {
+		EXTRACT_STR(dest, substr1, substr2); // Extracting current value for specific field
+		MOVE_NEXT(substr1, substr2);
+
+		switch (j) {
+		case 0: strcpy(scan->manufacturer, dest); break;
+		case 1: strcpy(scan->model, dest); break;
+		case 2: scan->year = atoi(dest); break;
+		case 3: scan->price = atof(dest); break;
+		case 4: scan->x_size = atoi(dest); break;
+		}
+	}
+
+	scan->y_size = atoi(substr1);
+
+	return scan;
 }
 
 /*-------------------------------------------------------------------------------------------------*
@@ -399,8 +448,53 @@ void del_scanner(const char *db, int id) {
 	free(buff);
 }
 
+/*-------------------------------------------------------------------------------------------------*
+Name:         add_scanner
+Usage:        add_scanner("Database/db1", "Dell;DellScan2;2005;999.99;240;150");
+Prototype in: sacnner.h
+Synopsis:     adds to the end of database new scanner. The scanner is extracted from the source string
+'scanner_str' using the 'extract_struct' function.
+Return value: none.
+*--------------------------------------------------------------------------------------------------*/
 void add_scanner(const char *db, const char* scanner_str) {
+	FILE *db_file = NULL;
+	int scans_num = 0, spot = 0;
+	SCAN_INFO *buff = NULL, *new_scan = NULL;
+	IsEqualler is_equal = NULL;
 
+	SAFE_OPEN_FILE(db_file, db, "rb");
+	fread(&scans_num, sizeof(int), 1, db_file);
+	buff = (SCAN_INFO*)malloc(scans_num * sizeof(SCAN_INFO));
+	fread(buff, sizeof(SCAN_INFO), scans_num, db_file);
+	fclose(db_file);
+
+	new_scan = extract_struct(scanner_str);
+	new_scan->id = scans_num;
+
+	for (int i = 0; i < scans_num; i++) {
+		spot = 0; // 1 - scanners are equal, 0 scanners aren't equal
+		
+		for (int j = 0; j < FIELDS_NUM - 1; j++)
+			if (scans_is_equal(buff + i, new_scan)) {
+				spot = 1; break;
+			}
+
+		if (spot) break; // Breaks if find two equivalent scanners
+	}
+
+	if (spot) {
+		printf("\nWARNING: Adding failed! This scanner was already in the database!\n");
+		return;
+	}
+
+	scans_num++;
+	SAFE_OPEN_FILE(db_file, db, "r+b");
+	fwrite(&scans_num, sizeof(int), 1, db_file);
+	fseek(db_file, 0, SEEK_END);
+	fwrite(new_scan, sizeof(SCAN_INFO), 1, db_file);
+	fclose(db_file);
+
+	free(buff);
 }
 
 /*-------------------------------------------------------------------------------------------------*
@@ -440,7 +534,6 @@ void print_db(const char *db) {
 	fclose(out_file);
 	free(scans);
 }
-
 
 /*-------------------------------------------------------------------------------------------------*
 Name:         select

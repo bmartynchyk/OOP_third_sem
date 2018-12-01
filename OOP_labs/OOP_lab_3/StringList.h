@@ -2,6 +2,8 @@
 #ifndef DEBUG
 #define DEBUG
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <string.h>
 #include <stdio.h>
 
@@ -32,10 +34,12 @@ public:
 	cString& operator =(const cString& stringsrc);
 	const cString& operator =(const unsigned char* psz);
 	char operator [](int indx);
-	//cString& operator =(const cString& stringsrc);
 	cString operator +(const cString& string);
 	cString& operator +=(const cString& string);
+
 private:
+	char *str; // String-value
+	int len; // Len of string
 };
 
 #endif DEBUG

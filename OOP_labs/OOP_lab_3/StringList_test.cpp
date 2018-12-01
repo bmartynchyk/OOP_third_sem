@@ -30,6 +30,20 @@ void main() {
 	cout << "\ns3.Compare(*s1); = " << s3.Compare(*s1);
 	
 	s3.SetAt(2, 's');
-	cout << "\ns3.SetAt(2, 's'); = "; s3.Print(); ENDL;
+	cout << "\ns3.SetAt(2, 's'); = "; s3.Print();
+
+	cout << "\n\ns4 = "; s4.Print();
+	cString s;
+
+	s = s4.Left(3);
+	cout << "\n\ns = s4.Left(3) = "; s.Print();
+	if (s == s4.Left(3)) cout << "\n(s == s4.Left(3))? - true";
+	else cout << "\n(s == s4.Left(3))? - false";
+
+	s = s4.Right(5);
+	cout << "\n\ns = s4.Right(5) = "; s.Print();
+	if (s == s4.Right(3)) cout << "\n(s == s4.Right(3))? - true";
+	else cout << "\n(s == s4.Right(3))? - false";
+
 	STOP;
 }

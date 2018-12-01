@@ -33,6 +33,7 @@ public:
 	// Operators
 	cString& operator =(const cString& stringsrc);
 	const cString& operator =(const unsigned char* psz);
+	bool operator ==(const cString& stringsrc);
 	char operator [](int indx);
 	cString operator +(const cString& string);
 	cString& operator +=(const cString& string);

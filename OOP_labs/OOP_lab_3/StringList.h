@@ -26,7 +26,7 @@ public:
 	int Find(char ch) const;
 	int Find(char *pszsub) const;
 	void Print();
-	cString Mid(int nfirst, int ncount) const;
+	cString Mid(int nfirst, int ncount = -1) const;
 	cString Left(int ncount) const;
 	cString Right(int ncount) const;
 

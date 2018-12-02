@@ -1,3 +1,14 @@
+/***************************************************************************************************
+* File:          StringList.cpp
+* Synopsis:      implementation of methods, constructors, destructors and overloaded operators of 
+* class cString. Forms module with file StringList.cpp. cString class targeted for storing strings 
+* and comfortable manipulation of them.
+* Related files: StringList.cpp
+* Author:        Bohdan Martynchyk KV-74
+* Written:       01/12/2018
+* Last modified: 02/12/2018
+* Source:        https://github.com/bmartynchyk/OOP_third_sem
+***************************************************************************************************/
 
 #include "StringList.h"
 #include <iostream>

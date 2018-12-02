@@ -1,3 +1,13 @@
+/***************************************************************************************************
+* File:          StringList.h
+* Synopsis:      declaration of methods, constructors, destructors and overloaded operators of class 
+* cString. Forms module with file StringList.cpp.
+* Related files: StringList.cpp
+* Author:        Bohdan Martynchyk KV-74
+* Written:       01/12/2018
+* Last modified: 02/12/2018
+* Source:        https://github.com/bmartynchyk/OOP_third_sem
+***************************************************************************************************/
 
 #ifndef DEBUG
 #define DEBUG

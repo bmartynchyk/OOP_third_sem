@@ -1,8 +1,8 @@
 /***************************************************************************************************
 * File:          scanner.c
 * Synopsis:      definition of 'scanner.h' function. In this file released functions for database
-management and auxiliary to them functions. This file also defines new types, constants, constant 
-arrays, macros, which are used in the local functions of this file.
+* management and auxiliary to them functions. This file also defines new types, constants, constant 
+* arrays, macros, which are used in the local functions of this file.
 * Related files: scanner.h
 * Author:        Bohdan Martynchyk KV-74
 * Written:       19/11/2018

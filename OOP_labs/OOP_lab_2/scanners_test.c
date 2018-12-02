@@ -1,7 +1,7 @@
 /***************************************************************************************************
 * File:          scanners_test.c
-* Synopsis:      project compiled & debug by using C(/TC), Visual Studio 2015. You can upload project.
-Another version of this project could be different.
+* Synopsis:      project compiled & debug by using C(/TC), Visual Studio 2015. You can freely 
+* download the source files from the link below. The version of uploaded files could be different.
 * Author:        Bohdan Martynchyk KV-74
 * Written:       19/11/2018
 * Last modified: 29/11/2018

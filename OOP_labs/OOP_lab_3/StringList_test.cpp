@@ -1,3 +1,12 @@
+/***************************************************************************************************
+* File:          StringList_test.cpp
+* Synopsis:      testing file for cString class. Compiled and debug VS 2015. You can freely download 
+* the source files from the link below. The version of uploaded files could be different.
+* Author:        Bohdan Martynchyk KV-74
+* Written:       01/12/2018
+* Last modified: 02/12/2018
+* Source:        https://github.com/bmartynchyk/OOP_third_sem
+***************************************************************************************************/
 
 #include <iostream>
 #include "StringList.h"

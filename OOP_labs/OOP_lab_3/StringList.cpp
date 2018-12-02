@@ -180,7 +180,7 @@ cString& cString::operator =(const cString& stringsrc) {
 	len = 0;
 
 	try {
-		if (NULL == &stringsrc) throw "Equating to NULL-reference of cString!";
+		if (NULL == &stringsrc) throw "Equating to NULL-reference on cString object!";
 		if (NULL == stringsrc.str) throw "Equating to empty cSting object!";
 
 		this->len = stringsrc.len;
@@ -195,15 +195,28 @@ cString& cString::operator =(const cString& stringsrc) {
 	return *this;
 }
 const cString& cString::operator =(const unsigned char* psz) {
-	cString str;
+	delete[] this->str; // Returns empty cString if detected 
+	this->len = 0; // NULL-reference on const unsigned char *
 
-	return str;
+	try {
+		if (NULL == psz) throw "";
+
+		len = strlen((const char*)psz);
+		str = new char[len + 1];
+		strcpy(str, (const char*)psz);
+		str[len] = '\0';
+	}
+	catch (const char *exeption) {
+		std::cerr << "\nWARNING: " << exeption << "\n";
+	}
+
+	return *this;
 }
 bool cString::operator ==(const cString& stringsrc) {
 	int res = 1;
 
 	try {
-		if (NULL == &stringsrc) throw "Comparison with NULL-reference cString object!";
+		if (NULL == &stringsrc) throw "Comparison with NULL-reference on cString object!";
 		if (NULL == stringsrc.str) throw "Comparison with uninitialized/empty cString object!";
 
 		res = strcmp(stringsrc.str, str);
@@ -215,17 +228,59 @@ bool cString::operator ==(const cString& stringsrc) {
 	return !res;
 }
 char cString::operator [](int indx) {
-	char str = '\0';
+	if (indx >= len) {
+		std::cerr << "\nERROR: Out of range for operator[]! Assigned last character!\n";
+		indx = len - 1;
+	}
+	if (indx < 0) {
+		std::cerr << "\nERROR: Out of range for operator[]! Assigned first character!\n";
+		indx = 0;
+	}
 
-	return str;
+	return str[indx];
 }
 cString cString::operator +(const cString& string) {
-	cString str;
+	cString res; // Result object of adding
 
-	return str;
+	res.len = this->len;
+	
+	if (NULL == &string) std::cerr << "\nERROR: Right operand for + is NULL-reference on cString object!\n";
+	if (NULL == string.str) std::cerr << "\nWARNING: Right operand for + is uninitialize/empty!\n";
+	else res.len += string.len;
+
+	res.str = new char[res.len + 1];
+
+	if (NULL == this->str) std::cerr << "\nWARNING: Left operand for + is uninitialize/empty!\n";
+	else strcpy(res.str, this->str);
+
+	if (res.len != this->len)
+		strcat(res.str, string.str);
+	res.str[res.len] = '\0';
+
+	return res;
 }
-cString& cString::operator +=(const cString& string){
-	cString str;
+cString& cString::operator +=(const cString& string) {
+	char *buff = new char[len + 1]; // Buffer for temporary copying 'str' variable
 
-	return str;
+	try {
+		if (NULL == &string) throw "\nERROR: Adding NULL-reference on cString object!\n";
+		if (NULL == string.str) throw "\nWARNING: Adding uninitialized/empty cString object!\n";
+
+		strcpy(buff, str); 
+		delete[] str;
+
+		len += string.len; // Creating new string
+		str = new char[len + 1];
+
+		strcpy(str, buff); // Copying into destination string
+		strcat(str, string.str);
+		str[len] = '\0';
+	}
+	catch(const char *exception){
+		std::cerr << exception;
+	}
+
+	delete[] buff;
+
+	return *this;
 }

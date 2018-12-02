@@ -45,5 +45,9 @@ void main() {
 	if (s == s4.Right(3)) cout << "\n(s == s4.Right(3))? - true";
 	else cout << "\n(s == s4.Right(3))? - false";
 
+	cout << "\n\ns4.Find('6'); = " << s4.Find('6');
+	cout << "\ns4.Find('599'); = " << s4.Find("599");
+	cout << "\ns4.Find('5678'); = " << s4.Find("5678");
+
 	STOP;
 }

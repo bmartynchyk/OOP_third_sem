@@ -85,10 +85,21 @@ int cString::Compare(const cString& s) const {
 	return res;
 }
 int cString::Find(char ch) const {
-	return 0;
+	int i = 0;
+
+	for (i = 0; i < len; i++) 
+		if (str[i] == ch) break;
+	
+	if (len <= i) i = -1;
+
+	return i;
 }
 int cString::Find(char *pszsub) const {
-	return 0;
+	char *temp = strstr(str, pszsub);
+
+	if (NULL == temp) return -1;
+
+	return temp - str;
 }
 void cString::Print() {
 	try {
